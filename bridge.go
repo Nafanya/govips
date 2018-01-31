@@ -316,6 +316,15 @@ func vipsZoom(input *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
 	return output, nil
 }
 
+func vipsRoundCorners(input *C.VipsImage) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.round_corners(input, &output); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func handleVipsError() error {
 	defer C.vips_thread_shutdown()
 	defer C.vips_error_clear()

@@ -121,6 +121,20 @@ int invert_image(VipsImage *in, VipsImage **out) {
 	return vips_invert(in, out, NULL);
 }
 
+int round_corners(VipsImage *in, VipsImage **out) {
+  VipsImage *mask;
+
+  int w = vips_image_get_width(in);
+  int h = vips_image_get_height(in);
+
+  int res = vips_mask_ideal_ring(&mask, w, h, 0.5, 1, "uchar", 1, "optical", 1, NULL);
+  if (res != 0) {
+    return res;
+  }
+  res = vips_bandjoin2(in, mask, out, NULL);
+  g_object_unref(mask);
+  return res;
+}
 
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend, double r, double g, double b) {
 	if (extend == VIPS_EXTEND_BACKGROUND) {

@@ -47,6 +47,7 @@ int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g,
 int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator);
 int gaussian_blur(VipsImage *in, VipsImage **out, double sigma);
 int invert_image(VipsImage *in, VipsImage **out);
+int round_corners(VipsImage *in, VipsImage **out);
 
 void gobject_set_property(VipsObject* object, const char* name, const GValue* value);
 

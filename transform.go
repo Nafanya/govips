@@ -32,6 +32,7 @@ type TransformParams struct {
 	Rotate                  Angle
 	BlurSigma               float64
 	Flip                    FlipDirection
+	RoundCorners            bool
 	Width                   Scalar
 	Height                  Scalar
 	CropOffsetX             Scalar
@@ -287,6 +288,11 @@ func (t *Transform) StripMetadata() *Transform {
 // image is flattened
 func (t *Transform) BackgroundColor(color Color) *Transform {
 	t.export.BackgroundColor = &color
+	return t
+}
+
+func (t *Transform) RoundCorners() *Transform {
+	t.tx.RoundCorners = true
 	return t
 }
 
@@ -621,6 +627,14 @@ func postProcess(bb *Blackboard) error {
 
 	if bb.Rotate > 0 {
 		bb.image, err = vipsRotate(bb.image, bb.Rotate)
+		if err != nil {
+			return err
+		}
+	}
+
+	if bb.RoundCorners {
+		bb.image, err = vipsRoundCorners(bb.image)
+
 		if err != nil {
 			return err
 		}
