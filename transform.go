@@ -6,6 +6,8 @@ import "C"
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
@@ -37,6 +39,8 @@ type TransformParams struct {
 	Height                  Scalar
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
+	CropWidth               Scalar
+	CropHeight              Scalar
 }
 
 // Transform handles single image transformations
@@ -145,6 +149,16 @@ func (t *Transform) CropRelativeOffsetX(x float64) *Transform {
 // CropRelativeOffsetY sets the target offset from the crop position
 func (t *Transform) CropRelativeOffsetY(y float64) *Transform {
 	t.tx.CropOffsetY.SetScale(y)
+	return t
+}
+
+func (t *Transform) CropRelativeWidth(w float64) *Transform {
+	t.tx.CropWidth.SetScale(w)
+	return t
+}
+
+func (t *Transform) CropRelativeHeight(h float64) *Transform {
+	t.tx.CropHeight.SetScale(h)
 	return t
 }
 
@@ -424,11 +438,34 @@ func (t *Transform) transform(image *C.VipsImage, imageType ImageType) (*C.VipsI
 		return image, err
 	}
 
+	if err := crop(bb); err != nil {
+		return image, err
+	}
+
 	if err := postProcess(bb); err != nil {
 		return image, err
 	}
 
 	return bb.image, nil
+}
+
+func crop(bb *Blackboard) error {
+	if bb.CropWidth.Value == 0 || bb.CropHeight.Value == 0 {
+		return nil
+	}
+	imageWidth, imageHeight := bb.Width(), bb.Height()
+	x, y := int(bb.CropOffsetX.Get(imageWidth)), int(bb.CropOffsetY.Get(imageHeight))
+	h, w := int(bb.CropWidth.Get(imageWidth)), int(bb.CropHeight.Get(imageHeight))
+
+	if x < 0 || x + w > imageWidth || y < 0 || y + h > imageHeight {
+		return errors.New("cropped rectangle is outside the image")
+	}
+
+	fmt.Printf("cropping x:%d y:%d w:%d h:%d\n", x, y, w, h)
+	img, err := vipsExtractArea(bb.image, x, y, w, h)
+	bb.image = img
+
+	return err
 }
 
 func resize(bb *Blackboard) error {
