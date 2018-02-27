@@ -152,6 +152,16 @@ func (t *Transform) CropRelativeOffsetY(y float64) *Transform {
 	return t
 }
 
+func (t *Transform) CropWidth(w float64) *Transform {
+	t.tx.CropWidth.Set(w)
+	return t
+}
+
+func (t *Transform) CropHeight(h float64) *Transform {
+	t.tx.CropHeight.Set(h)
+	return t
+}
+
 func (t *Transform) CropRelativeWidth(w float64) *Transform {
 	t.tx.CropWidth.SetScale(w)
 	return t
@@ -457,7 +467,7 @@ func crop(bb *Blackboard) error {
 	x, y := int(bb.CropOffsetX.Get(imageWidth)), int(bb.CropOffsetY.Get(imageHeight))
 	h, w := int(bb.CropWidth.Get(imageWidth)), int(bb.CropHeight.Get(imageHeight))
 
-	if x < 0 || x + w > imageWidth || y < 0 || y + h > imageHeight {
+	if x < 0 || x+w > imageWidth || y < 0 || y+h > imageHeight {
 		return errors.New("cropped rectangle is outside the image")
 	}
 
